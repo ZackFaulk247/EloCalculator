@@ -42,6 +42,7 @@ Lawn Mower;1200
 Valentino;1200
 Dorito;1200
 Yagami;1200
+Gr00se;1200
 Mi-Goreng;1199
 Frost;1190
 Lonk;1190
