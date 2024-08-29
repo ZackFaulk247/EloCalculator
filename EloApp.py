@@ -13,11 +13,9 @@ class EloApp:
         self.root = root
         self.root.title("ELO Ranking System")
 
-        # Frame for Text Widget and Scrollbar
+        # Scrollbar
         frame = tk.Frame(root)
         frame.pack(fill='both', expand=True)
-
-        # Text area to display output with Scrollbar
         self.output = tk.Text(frame, height=10, width=50)
         scrollbar = tk.Scrollbar(frame, command=self.output.yview)
         self.output.configure(yscrollcommand=scrollbar.set)
@@ -97,44 +95,45 @@ class EloApp:
         add_window.bind('<Return>', lambda event: submit())  # Bind Enter key to submit
 
     def edit_player(self):
-        edit_window = tk.Toplevel(self.root)
-        edit_window.title("Edit Player")
+            edit_window = tk.Toplevel(self.root)
+            edit_window.title("Edit Player")
 
-        tk.Label(edit_window, text="Current Name:").pack()
-        current_name_entry = tk.Entry(edit_window)
-        current_name_entry.pack()
-        current_name_entry.focus_set()  # Auto-focus on the current name entry field
+            tk.Label(edit_window, text="Current Name:").pack()
+            current_name_entry = tk.Entry(edit_window)
+            current_name_entry.pack()
+            current_name_entry.focus_set()  # Auto-focus on the current name entry field
 
-        tk.Label(edit_window, text="New Name:").pack()
-        new_name_entry = tk.Entry(edit_window)
-        new_name_entry.pack()
+            tk.Label(edit_window, text="New Name:").pack()
+            new_name_entry = tk.Entry(edit_window)
+            new_name_entry.pack()
 
-        tk.Label(edit_window, text="New Elo Rating:").pack()
-        new_rating_entry = tk.Entry(edit_window)
-        new_rating_entry.pack()
+            tk.Label(edit_window, text="New Elo Rating:").pack()
+            new_rating_entry = tk.Entry(edit_window)
+            new_rating_entry.pack()
 
-        def submit():
-            current_name = current_name_entry.get()
-            player = self.methods.find_player(current_name)
-            if player:
-                new_name = new_name_entry.get() or player.get_name()
-                try:
-                    new_rating = int(new_rating_entry.get()) if new_rating_entry.get() else player.get_elo()
-                    player.set_name(new_name)
-                    player.set_elo(new_rating)
-                    messagebox.showinfo("Success", f"Player {current_name} updated to {new_name} with Elo rating {new_rating}")
-                    self.list_players()  # Refresh the player list
-                    self.log_action(f"Edited player: {current_name} to {new_name} with new Elo rating {new_rating}")
-                    edit_window.destroy()
-                except ValueError:
-                    messagebox.showerror("Error", "Elo rating must be a number")
-            else:
-                messagebox.showerror("Error", f"Player {current_name} not found")
+            def submit():
+                current_name = current_name_entry.get()
+                player = self.methods.find_player(current_name)
+                if player:
+                    old_elo = player.get_elo()  # Log the old Elo rating
+                    new_name = new_name_entry.get() or player.get_name()
+                    try:
+                        new_rating = int(new_rating_entry.get()) if new_rating_entry.get() else player.get_elo()
+                        player.set_name(new_name)
+                        player.set_elo(new_rating)
+                        messagebox.showinfo("Success", f"Player {current_name} updated to {new_name} with Elo rating {new_rating}")
+                        self.list_players()  # Refresh the player list
+                        self.log_action(f"Edited player: {current_name} to {new_name} with Elo change: {old_elo} -> {new_rating}")
+                        edit_window.destroy()
+                    except ValueError:
+                        messagebox.showerror("Error", "Elo rating must be a number")
+                else:
+                    messagebox.showerror("Error", f"Player {current_name} not found")
 
-        submit_button = tk.Button(edit_window, text="Submit", command=submit)
-        submit_button.pack()
+            submit_button = tk.Button(edit_window, text="Submit", command=submit)
+            submit_button.pack()
 
-        edit_window.bind('<Return>', lambda event: submit())  # Bind Enter key to submit
+            edit_window.bind('<Return>', lambda event: submit())  # Bind Enter key to submit
 
     def delete_player(self):
         delete_window = tk.Toplevel(self.root)
@@ -182,10 +181,12 @@ class EloApp:
             loser = self.methods.find_player(loser_name)
 
             if winner and loser:
+                old_winner_elo = winner.get_elo()  # Log the old Elo rating
+                old_loser_elo = loser.get_elo()
                 self.methods.calculate_elo(winner, loser)
                 messagebox.showinfo("Success", "Match recorded and Elo ratings updated")
                 self.list_players()  # Refresh the player list
-                self.log_action(f"Recorded match: {winner_name} (winner) vs {loser_name} (loser)")
+                self.log_action(f"Recorded match: {winner_name} (Elo: {old_winner_elo} -> {winner.get_elo()}) vs {loser_name} (Elo: {old_loser_elo} -> {loser.get_elo()})")
                 match_window.destroy()
             else:
                 messagebox.showerror("Error", "One or both players not found")
